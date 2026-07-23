@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-brand-50: #f2f0ff;
+  --color-brand-100: #e6e2ff;
+  --color-brand-500: #6d4dfb;
+  --color-brand-600: #5a37f5;
+  --color-brand-700: #4a29d6;
+  --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-slate-50 text-slate-700 antialiased;
+  font-family: var(--font-sans);
+}
+
+#root {
+  min-height: 100svh;
+}
