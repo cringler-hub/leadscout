@@ -24,9 +24,10 @@ const QUALIFIED_SCORE_THRESHOLD = 70
 export async function insertLeadsDeduped(
   admin: SupabaseClient,
   organizationId: string,
-  agentId: string,
+  agentId: string | null,
   searchProfileId: string | null,
   incomingLeads: IncomingLead[],
+  source: 'lead_scout' | 'salesviewer' = 'lead_scout',
 ) {
   const websites = incomingLeads
     .map((lead) => lead.website?.toLowerCase())
@@ -70,6 +71,7 @@ export async function insertLeadsDeduped(
       recommended_role: lead.recommendedRole ?? null,
       conversation_trigger: lead.conversationTrigger ?? null,
       source_urls: lead.sourceUrls ?? [],
+      source,
     })
 
     if (error) throw error

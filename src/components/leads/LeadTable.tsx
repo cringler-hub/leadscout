@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { Database } from '@/lib/database.types'
-import { LeadStatusBadge, ScoreBadge } from '@/components/leads/badges'
+import { LeadSourceBadge, LeadStatusBadge, ScoreBadge } from '@/components/leads/badges'
 import { EmptyState } from '@/components/ui/empty-state'
 
 type Lead = Database['public']['Tables']['leads']['Row']
@@ -20,6 +20,7 @@ export function LeadTable({ leads, showStatus = true }: { leads: Lead[]; showSta
             <th className="pb-3 font-medium">Mitarbeiter</th>
             <th className="pb-3 font-medium">Score</th>
             <th className="pb-3 font-medium">Grund</th>
+            <th className="pb-3 font-medium">Quelle</th>
             {showStatus && <th className="pb-3 font-medium">Status</th>}
           </tr>
         </thead>
@@ -38,6 +39,9 @@ export function LeadTable({ leads, showStatus = true }: { leads: Lead[]; showSta
                 <ScoreBadge score={lead.lead_score} />
               </td>
               <td className="py-3 pr-4 max-w-xs text-slate-600">{lead.conversation_trigger ?? lead.reasoning ?? '–'}</td>
+              <td className="py-3 pr-4">
+                <LeadSourceBadge source={lead.source} />
+              </td>
               {showStatus && (
                 <td className="py-3 pr-4">
                   <LeadStatusBadge status={lead.status} />

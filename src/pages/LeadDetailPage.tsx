@@ -5,7 +5,7 @@ import { useApp } from '@/context/AppContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PageLoading } from '@/components/ui/empty-state'
-import { LeadStatusBadge, ScoreBadge } from '@/components/leads/badges'
+import { LeadSourceBadge, LeadStatusBadge, ScoreBadge } from '@/components/leads/badges'
 import { getLeadById, updateLeadStatus } from '@/data/leads'
 import { submitLeadFeedback } from '@/data/leadFeedback'
 import { formatCurrency, formatDateTime, formatNumber } from '@/lib/format'
@@ -70,6 +70,7 @@ export function LeadDetailPage() {
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold text-slate-900">{lead.company_name}</h1>
             <LeadStatusBadge status={lead.status} />
+            <LeadSourceBadge source={lead.source} />
           </div>
           <p className="mt-1 text-slate-500">
             {[lead.industry, lead.location].filter(Boolean).join(' · ') || '—'}

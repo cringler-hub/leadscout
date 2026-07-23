@@ -2,6 +2,7 @@ export type LeadStatus = 'neu' | 'relevant' | 'nicht_relevant' | 'ins_crm'
 export type AgentStatus = 'idle' | 'running' | 'done' | 'error'
 export type AgentRunStatus = 'running' | 'completed' | 'error'
 export type FeedbackValue = 'relevant' | 'nicht_relevant'
+export type LeadSource = 'lead_scout' | 'salesviewer'
 
 export interface ScoreDetails {
   industryFit?: number
@@ -139,7 +140,7 @@ export interface Database {
         Row: {
           id: string
           organization_id: string
-          agent_id: string
+          agent_id: string | null
           search_profile_id: string | null
           company_name: string
           website: string | null
@@ -155,12 +156,13 @@ export interface Database {
           conversation_trigger: string | null
           source_urls: string[]
           status: LeadStatus
+          source: LeadSource
           created_at: string
           updated_at: string
         }
         Insert: {
           organization_id: string
-          agent_id: string
+          agent_id?: string | null
           search_profile_id?: string | null
           company_name: string
           website?: string | null
@@ -176,6 +178,7 @@ export interface Database {
           conversation_trigger?: string | null
           source_urls?: string[]
           status?: LeadStatus
+          source?: LeadSource
         }
         Update: {
           status?: LeadStatus

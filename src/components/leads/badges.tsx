@@ -1,5 +1,14 @@
 import { Badge } from '@/components/ui/badge'
-import type { LeadStatus } from '@/lib/database.types'
+import type { LeadSource, LeadStatus } from '@/lib/database.types'
+
+const sourceLabels: Record<LeadSource, string> = {
+  lead_scout: 'Lead Scout',
+  salesviewer: 'Website-Besuch',
+}
+
+export function LeadSourceBadge({ source }: { source: LeadSource }) {
+  return <Badge variant={source === 'salesviewer' ? 'neutral' : 'brand'}>{sourceLabels[source]}</Badge>
+}
 
 const statusLabels: Record<LeadStatus, { label: string; variant: 'neutral' | 'success' | 'danger' | 'brand' }> = {
   neu: { label: 'Neu', variant: 'neutral' },

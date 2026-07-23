@@ -86,7 +86,8 @@ supabase secrets set \
   RESEND_API_KEY="dein-resend-key" \
   REPORT_FROM_ADDRESS="LeadScout <leadscout@ringler-online.com>" \
   REPORT_TRIGGER_SECRET="noch-ein-zufälliges-secret" \
-  APP_URL="https://www.ringler-online.com/leadscout"
+  APP_URL="https://www.ringler-online.com/leadscout" \
+  SALESVIEWER_API_KEY="dein-salesviewer-api-key"
 
 supabase functions deploy trigger-lead-scout
 # --no-verify-jwt: diese beiden Functions werden von Dritten (n8n) mit einem
@@ -95,6 +96,7 @@ supabase functions deploy trigger-lead-scout
 # "401 Invalid JWT" ab, bevor die Funktion überhaupt läuft.
 supabase functions deploy lead-scout-callback --no-verify-jwt
 supabase functions deploy send-daily-report --no-verify-jwt
+supabase functions deploy sync-salesviewer-visitors
 ```
 
 `SUPABASE_URL` und `SUPABASE_SERVICE_ROLE_KEY` müssen für Edge Functions
@@ -127,6 +129,17 @@ Verschickt an alle Organisationen mit hinterlegter Report-E-Mail einen
 Report über die heute gefundenen Leads (überspringt Organisationen ohne
 neue Leads). Für einen echten täglichen Rhythmus kann diese Function später
 per Supabase Cron (`pg_cron` + `pg_net`) automatisch aufgerufen werden.
+
+## Website-Besucher aus SalesViewer
+
+Auf der Leads-Seite gibt es einen Button **"Website-Besuche abrufen"**, der
+über die Edge Function `sync-salesviewer-visitors` erkannte Firmenbesuche der
+letzten 7 Tage von [SalesViewer](https://www.salesviewer.com) abruft und als
+zusätzliche Leads anlegt (Kennzeichnung "Quelle: Website-Besuch"). Diese Leads
+haben keinen Score/keine KI-Begründung, da SalesViewer nur Besuchsdaten
+liefert (Firma, Branche, Ort), keine Bewertung. Voraussetzung: Der API-Key aus
+deinem SalesViewer-Konto (Menü "Projects & Tracking") muss als
+`SALESVIEWER_API_KEY` gesetzt sein (siehe oben).
 
 ## Deployment nach ringler-online.com
 
