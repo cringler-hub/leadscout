@@ -104,12 +104,15 @@ Deno.serve(async (req) => {
     url.searchParams.set('from', '-7 days')
     url.searchParams.set('pageSize', '100')
 
-    const response = await fetch(url, {
-      headers: { 'X-SV-APIKEY': apiKey },
-    })
+    const accountId = Deno.env.get('SALESVIEWER_ACCOUNT_ID')
+    const headers: Record<string, string> = { 'X-SV-APIKEY': apiKey }
+    if (accountId) headers['X-SV-ACCOUNTID'] = accountId
+
+    const response = await fetch(url, { headers })
 
     if (!response.ok) {
-      throw new Error(`SalesViewer antwortete mit Status ${response.status}`)
+      const bodyText = await response.text().catch(() => '')
+      throw new Error(`SalesViewer antwortete mit Status ${response.status}: ${bodyText.slice(0, 300)}`)
     }
 
     const sessions: SalesViewerSession[] = await response.json()

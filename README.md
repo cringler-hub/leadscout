@@ -87,7 +87,8 @@ supabase secrets set \
   REPORT_FROM_ADDRESS="LeadScout <leadscout@ringler-online.com>" \
   REPORT_TRIGGER_SECRET="noch-ein-zufälliges-secret" \
   APP_URL="https://www.ringler-online.com/leadscout" \
-  SALESVIEWER_API_KEY="dein-salesviewer-api-key"
+  SALESVIEWER_API_KEY="dein-salesviewer-api-key" \
+  SALESVIEWER_ACCOUNT_ID="deine-salesviewer-account-id"
 
 supabase functions deploy trigger-lead-scout
 # --no-verify-jwt: diese beiden Functions werden von Dritten (n8n) mit einem
