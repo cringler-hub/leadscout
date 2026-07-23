@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, Calendar, Clock, Play, Pencil } from 'lucide-react'
+import { Bot, Calendar, Clock, Play, Pencil, Square } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { StatusIndicator } from '@/components/ui/status-dot'
@@ -17,13 +17,16 @@ export function LeadScoutCard({
   searchProfile,
   stats,
   onStart,
+  onCancel,
 }: {
   agent: Agent
   searchProfile: SearchProfile
   stats: DashboardStats
   onStart: () => Promise<void>
+  onCancel: () => Promise<void>
 }) {
   const [starting, setStarting] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const isRunning = agent.status === 'running'
 
   const handleStart = async () => {
@@ -32,6 +35,15 @@ export function LeadScoutCard({
       await onStart()
     } finally {
       setStarting(false)
+    }
+  }
+
+  const handleCancel = async () => {
+    setCancelling(true)
+    try {
+      await onCancel()
+    } finally {
+      setCancelling(false)
     }
   }
 
@@ -56,6 +68,12 @@ export function LeadScoutCard({
               <Play className="h-4 w-4" />
               {isRunning ? 'Arbeitet gerade…' : starting ? 'Wird gestartet…' : 'Jetzt arbeiten lassen'}
             </Button>
+            {isRunning && (
+              <Button variant="destructive" onClick={() => void handleCancel()} disabled={cancelling}>
+                <Square className="h-4 w-4" />
+                {cancelling ? 'Wird abgebrochen…' : 'Lauf abbrechen'}
+              </Button>
+            )}
             <Link to="/lead-scout" className={buttonVariants({ variant: 'secondary' })}>
               <Pencil className="h-4 w-4" />
               Stellenprofil bearbeiten

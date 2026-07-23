@@ -49,3 +49,29 @@ export async function triggerLeadScout(params: {
   if (!data) throw new Error('Keine Antwort vom Lead Scout erhalten.')
   return data
 }
+
+// Bricht einen hängenden/laufenden Lauf manuell ab (z.B. wenn n8n nie
+// zurückmeldet) und setzt den Agenten wieder auf "idle" zurück. runId ist
+// optional, damit der Agent auch dann zurückgesetzt werden kann, wenn aus
+// irgendeinem Grund kein laufender agent_run mehr gefunden wird.
+export async function cancelAgentRun(agentId: string, runId?: string) {
+  if (runId) {
+    const { error: runError } = await supabase
+      .from('agent_runs')
+      .update({
+        status: 'error',
+        completed_at: new Date().toISOString(),
+        error_message: 'Manuell abgebrochen.',
+      })
+      .eq('id', runId)
+
+    if (runError) throw runError
+  }
+
+  const { error: agentError } = await supabase
+    .from('agents')
+    .update({ status: 'idle' })
+    .eq('id', agentId)
+
+  if (agentError) throw agentError
+}

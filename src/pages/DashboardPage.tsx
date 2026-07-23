@@ -9,7 +9,7 @@ import { PageLoading } from '@/components/ui/empty-state'
 import { getDashboardStats, type DashboardStats } from '@/data/dashboardStats'
 import { getRecentActivity, type ActivityItem } from '@/data/activity'
 import { listLeads } from '@/data/leads'
-import { triggerLeadScout } from '@/data/agentRuns'
+import { triggerLeadScout, cancelAgentRun } from '@/data/agentRuns'
 import type { Database } from '@/lib/database.types'
 
 type Lead = Database['public']['Tables']['leads']['Row']
@@ -53,6 +53,16 @@ export function DashboardPage() {
     }
   }
 
+  const handleCancel = async () => {
+    const runningRun = stats.runs.find((run) => run.status === 'running')
+    try {
+      await cancelAgentRun(agent.id, runningRun?.id)
+    } finally {
+      await loadData()
+      await refresh()
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -60,7 +70,13 @@ export function DashboardPage() {
         <p className="mt-1 text-slate-500">Übersicht deiner digitalen Mitarbeiter und Ergebnisse</p>
       </div>
 
-      <LeadScoutCard agent={agent} searchProfile={searchProfile} stats={stats} onStart={handleStart} />
+      <LeadScoutCard
+        agent={agent}
+        searchProfile={searchProfile}
+        stats={stats}
+        onStart={handleStart}
+        onCancel={handleCancel}
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
