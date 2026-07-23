@@ -32,6 +32,10 @@ interface SalesViewerSession {
   visits?: SalesViewerVisit[]
 }
 
+interface SalesViewerSessionsResponse {
+  result: SalesViewerSession[]
+}
+
 function mapSessionToLead(session: SalesViewerSession): IncomingLead | null {
   const company = session.company
   if (!company?.name || company.isCustomer) return null
@@ -103,6 +107,9 @@ Deno.serve(async (req) => {
     const url = new URL('https://api.salesviewer.com/sessions.json')
     url.searchParams.set('from', '-7 days')
     url.searchParams.set('pageSize', '100')
+    url.searchParams.set('includeCompany', 'true')
+    url.searchParams.set('includeCompanySector', 'true')
+    url.searchParams.set('includeVisits', 'true')
 
     const accountId = Deno.env.get('SALESVIEWER_ACCOUNT_ID')
     const headers: Record<string, string> = { 'X-SV-APIKEY': apiKey }
@@ -115,7 +122,8 @@ Deno.serve(async (req) => {
       throw new Error(`SalesViewer antwortete mit Status ${response.status}: ${bodyText.slice(0, 300)}`)
     }
 
-    const sessions: SalesViewerSession[] = await response.json()
+    const responseBody: SalesViewerSessionsResponse = await response.json()
+    const sessions = responseBody.result ?? []
     const leads = sessions
       .map(mapSessionToLead)
       .filter((lead): lead is IncomingLead => lead !== null)
