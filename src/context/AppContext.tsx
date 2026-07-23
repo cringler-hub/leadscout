@@ -54,11 +54,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Prüft die Supabase-Session direkt (nicht den React-State), damit refresh()
+  // auch unmittelbar nach signUp()/RPC-Aufrufen zuverlässig funktioniert, bevor
+  // der onAuthStateChange-Listener den lokalen State aktualisiert hat.
   const refresh = useCallback(async () => {
-    if (session) {
+    const { data } = await supabase.auth.getSession()
+    if (data.session) {
       await loadTenantData()
     }
-  }, [session, loadTenantData])
+  }, [loadTenantData])
 
   useEffect(() => {
     let active = true
