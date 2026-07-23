@@ -89,8 +89,12 @@ supabase secrets set \
   APP_URL="https://www.ringler-online.com/leadscout"
 
 supabase functions deploy trigger-lead-scout
-supabase functions deploy lead-scout-callback
-supabase functions deploy send-daily-report
+# --no-verify-jwt: diese beiden Functions werden von Dritten (n8n) mit einem
+# eigenen Secret aufgerufen, nicht mit einem Supabase-Login-Token. Ohne dieses
+# Flag lehnt Supabase den Aufruf schon auf Plattform-Ebene mit
+# "401 Invalid JWT" ab, bevor die Funktion überhaupt läuft.
+supabase functions deploy lead-scout-callback --no-verify-jwt
+supabase functions deploy send-daily-report --no-verify-jwt
 ```
 
 `SUPABASE_URL` und `SUPABASE_SERVICE_ROLE_KEY` müssen für Edge Functions
