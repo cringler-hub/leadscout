@@ -20,7 +20,7 @@ Statische SPA (Vite + React + TypeScript, läuft komplett im Browser)
           2. lead-scout-callback  – empfängt Ergebnisse von n8n, prüft ein Secret, schreibt Leads
 
 GitHub Actions baut die App bei jedem Push auf main und lädt sie
-automatisch per FTP in ein Verzeichnis auf ringler-online.com hoch.
+automatisch per SFTP in ein Verzeichnis auf ringler-online.com hoch.
 ```
 
 Warum keine Server Actions/API-Routes (z. B. Next.js)? Die bräuchten einen
@@ -127,7 +127,8 @@ per Supabase Cron (`pg_cron` + `pg_net`) automatisch aufgerufen werden.
 ## Deployment nach ringler-online.com
 
 `.github/workflows/deploy.yml` baut die App bei jedem Push auf `main` und
-lädt `dist/` automatisch per FTP in ein Verzeichnis auf IONOS hoch.
+lädt `dist/` automatisch per SFTP (IONOS hat klassisches FTP inzwischen
+abgeschaltet) in ein Verzeichnis auf IONOS hoch.
 
 Einmalig einzurichten (GitHub → Repo → **Settings → Secrets and variables →
 Actions**):
@@ -136,9 +137,9 @@ Actions**):
 | ----------------------- | -------------------------------------------------- |
 | `VITE_SUPABASE_URL`     | Supabase Project URL                                |
 | `VITE_SUPABASE_ANON_KEY`| Supabase anon public Key                            |
-| `IONOS_FTP_SERVER`      | FTP-Host, z. B. `ftp.ringler-online.com`            |
-| `IONOS_FTP_USERNAME`    | FTP-Benutzername                                    |
-| `IONOS_FTP_PASSWORD`    | FTP-Passwort                                        |
+| `IONOS_FTP_SERVER`      | SFTP-Host (z. B. `access-xxxxxxxx.webspace-host.com`) |
+| `IONOS_FTP_USERNAME`    | SFTP-Benutzername                                   |
+| `IONOS_FTP_PASSWORD`    | SFTP-Passwort                                       |
 | `IONOS_FTP_TARGET_DIR`  | Zielverzeichnis, z. B. `/leadscout/` (optional, Default `/leadscout/`) |
 
 Danach ist die App unter `https://www.ringler-online.com/leadscout/`

@@ -32,11 +32,13 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      - name: Deploy per FTP nach ringler-online.com
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Deploy per SFTP nach ringler-online.com
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.5
         with:
           server: ${{ secrets.IONOS_FTP_SERVER }}
+          port: 22
           username: ${{ secrets.IONOS_FTP_USERNAME }}
           password: ${{ secrets.IONOS_FTP_PASSWORD }}
-          local-dir: ./dist/
-          server-dir: ${{ secrets.IONOS_FTP_TARGET_DIR || '/leadscout/' }}
+          local_path: './dist/*'
+          remote_path: ${{ secrets.IONOS_FTP_TARGET_DIR || '/leadscout/' }}
+          sftpArgs: '-o ConnectTimeout=5'
