@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL('https://api.salesviewer.com/sessions.json')
-    url.searchParams.set('from', '-7 days')
+    url.searchParams.set('from', '-10 days')
     url.searchParams.set('pageSize', '100')
     url.searchParams.set('includeCompany', 'true')
     url.searchParams.set('includeCompanySector', 'true')
