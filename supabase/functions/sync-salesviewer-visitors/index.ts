@@ -20,6 +20,8 @@ interface SalesViewerCompany {
 
 interface SalesViewerVisit {
   url?: string
+  startedAt?: string
+  lastActivityAt?: string
   duration_secs?: number
   numEvents?: number
 }
@@ -27,6 +29,7 @@ interface SalesViewerVisit {
 interface SalesViewerSession {
   guid: string
   startedAt: string
+  lastActivityAt?: string
   duration_secs?: number
   company?: SalesViewerCompany | null
   visits?: SalesViewerVisit[]
@@ -36,19 +39,40 @@ interface SalesViewerSessionsResponse {
   result: SalesViewerSession[]
 }
 
+const visitDateFormatter = new Intl.DateTimeFormat('de-DE', {
+  timeZone: 'Europe/Vienna',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+function formatVisitDate(iso: string) {
+  return `${visitDateFormatter.format(new Date(iso))} Uhr`
+}
+
 function mapSessionToLead(session: SalesViewerSession): IncomingLead | null {
   const company = session.company
   if (!company?.name || company.isCustomer) return null
 
-  const totalEvents = (session.visits ?? []).reduce((sum, v) => sum + (v.numEvents ?? 0), 0)
-  const visitedUrls = (session.visits ?? []).map((v) => v.url).filter((u): u is string => Boolean(u))
+  const visits = session.visits ?? []
+  const totalEvents = visits.reduce((sum, v) => sum + (v.numEvents ?? 0), 0)
+  const visitedUrls = visits.map((v) => v.url).filter((u): u is string => Boolean(u))
+
+  const firstVisit = formatVisitDate(session.startedAt)
+  const lastVisit = session.lastActivityAt ? formatVisitDate(session.lastActivityAt) : null
+  const visitTiming =
+    lastVisit && lastVisit !== firstVisit
+      ? `zwischen ${firstVisit} und ${lastVisit}`
+      : `am ${firstVisit}`
 
   return {
     companyName: company.name,
     website: company.url ?? null,
     industry: company.sector?.name ?? null,
     location: company.city ?? null,
-    reasoning: `Hat die Website besucht (${session.visits?.length ?? 1} Seitenaufruf(e), ${totalEvents} Interaktionen).`,
+    reasoning: `Hat die Website ${visitTiming} besucht (${visits.length || 1} Seitenaufruf(e), ${totalEvents} Interaktionen).`,
     buyingSignals: ['Website-Besuch'],
     sourceUrls: visitedUrls,
   }
