@@ -8,12 +8,12 @@ import { PageLoading } from '@/components/ui/empty-state'
 import { listLeads } from '@/data/leads'
 import { syncSalesviewerVisitors } from '@/data/salesviewer'
 import type { Database } from '@/lib/database.types'
-import type { LeadStatus } from '@/lib/database.types'
+import type { LeadSource, LeadStatus } from '@/lib/database.types'
 import { cn } from '@/lib/utils'
 
 type Lead = Database['public']['Tables']['leads']['Row']
 
-const filters: { value: LeadStatus | 'alle'; label: string }[] = [
+const statusFilters: { value: LeadStatus | 'alle'; label: string }[] = [
   { value: 'alle', label: 'Alle' },
   { value: 'neu', label: 'Neu' },
   { value: 'relevant', label: 'Relevant' },
@@ -21,10 +21,17 @@ const filters: { value: LeadStatus | 'alle'; label: string }[] = [
   { value: 'ins_crm', label: 'Ins CRM übertragen' },
 ]
 
+const sourceFilters: { value: LeadSource | 'alle'; label: string }[] = [
+  { value: 'alle', label: 'Alle Quellen' },
+  { value: 'lead_scout', label: 'Automatisch generiert (Lead Scout)' },
+  { value: 'salesviewer', label: 'Website-Besuche' },
+]
+
 export function LeadsPage() {
   const { organization } = useApp()
   const [leads, setLeads] = useState<Lead[] | null>(null)
-  const [filter, setFilter] = useState<LeadStatus | 'alle'>('alle')
+  const [statusFilter, setStatusFilter] = useState<LeadStatus | 'alle'>('alle')
+  const [sourceFilter, setSourceFilter] = useState<LeadSource | 'alle'>('alle')
   const [syncing, setSyncing] = useState(false)
   const [syncMessage, setSyncMessage] = useState<string | null>(null)
 
@@ -41,7 +48,9 @@ export function LeadsPage() {
 
   if (!leads) return <PageLoading />
 
-  const filtered = filter === 'alle' ? leads : leads.filter((lead) => lead.status === filter)
+  const filtered = leads
+    .filter((lead) => statusFilter === 'alle' || lead.status === statusFilter)
+    .filter((lead) => sourceFilter === 'alle' || lead.source === sourceFilter)
 
   const handleSyncSalesviewer = async () => {
     if (!organization) return
@@ -74,22 +83,43 @@ export function LeadsPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {filters.map((item) => (
-          <button
-            key={item.value}
-            type="button"
-            onClick={() => setFilter(item.value)}
-            className={cn(
-              'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-              filter === item.value
-                ? 'bg-brand-600 text-white'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50',
-            )}
-          >
-            {item.label}
-          </button>
-        ))}
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Status:</span>
+          {statusFilters.map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              onClick={() => setStatusFilter(item.value)}
+              className={cn(
+                'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+                statusFilter === item.value
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50',
+              )}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Quelle:</span>
+          {sourceFilters.map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              onClick={() => setSourceFilter(item.value)}
+              className={cn(
+                'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+                sourceFilter === item.value
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50',
+              )}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <Card>
