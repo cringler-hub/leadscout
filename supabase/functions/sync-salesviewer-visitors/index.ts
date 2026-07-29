@@ -10,10 +10,14 @@ import { insertLeadsDeduped, type IncomingLead } from '../_shared/insertLeads.ts
 interface SalesViewerCompany {
   name?: string | null
   url?: string | null
+  street?: string | null
+  zip?: string | null
   city?: string | null
   email?: string | null
   phone?: string | null
+  countyCode?: string | null
   isCustomer?: boolean
+  isFavorite?: boolean
   isCompetitor?: boolean
   sector?: { name?: string | null } | null
 }
@@ -24,6 +28,9 @@ interface SalesViewerVisit {
   lastActivityAt?: string
   duration_secs?: number
   numEvents?: number
+  refererSource?: string | null
+  refererMedium?: string | null
+  refererTerm?: string | null
 }
 
 interface SalesViewerSession {
@@ -31,6 +38,7 @@ interface SalesViewerSession {
   startedAt: string
   lastActivityAt?: string
   duration_secs?: number
+  language?: string | null
   company?: SalesViewerCompany | null
   visits?: SalesViewerVisit[]
 }
@@ -52,9 +60,26 @@ function formatVisitDate(iso: string) {
   return `${visitDateFormatter.format(new Date(iso))} Uhr`
 }
 
+// Baut aus Straße/PLZ/Stadt/Land eine möglichst vollständige Standortangabe,
+// fällt auf einzelne Teile zurück, falls SalesViewer nicht alles kennt.
+function formatLocation(company: SalesViewerCompany): string | null {
+  const parts = [company.street, [company.zip, company.city].filter(Boolean).join(' ')].filter(
+    (part): part is string => Boolean(part && part.trim()),
+  )
+  if (parts.length === 0) return null
+  const address = parts.join(', ')
+  return company.countyCode && company.countyCode !== 'DE' ? `${address} (${company.countyCode})` : address
+}
+
+function describeReferrer(visit: SalesViewerVisit): string | null {
+  if (!visit.refererSource && !visit.refererMedium) return null
+  const via = [visit.refererMedium, visit.refererSource].filter(Boolean).join(': ')
+  return visit.refererTerm ? `${via}, Suchbegriff "${visit.refererTerm}"` : via
+}
+
 function mapSessionToLead(session: SalesViewerSession): IncomingLead | null {
   const company = session.company
-  if (!company?.name || company.isCustomer) return null
+  if (!company?.name || company.isCustomer || company.isCompetitor) return null
 
   const visits = session.visits ?? []
   const totalEvents = visits.reduce((sum, v) => sum + (v.numEvents ?? 0), 0)
@@ -67,12 +92,24 @@ function mapSessionToLead(session: SalesViewerSession): IncomingLead | null {
       ? `zwischen ${firstVisit} und ${lastVisit}`
       : `am ${firstVisit}`
 
+  const reasoningParts = [
+    `Hat die Website ${visitTiming} besucht (${visits.length || 1} Seitenaufruf(e), ${totalEvents} Interaktionen).`,
+  ]
+
+  const referrer = visits.map(describeReferrer).find((r) => r !== null)
+  if (referrer) reasoningParts.push(`Gekommen über: ${referrer}.`)
+
+  const contact = [company.email, company.phone].filter(Boolean).join(' · ')
+  if (contact) reasoningParts.push(`Kontakt: ${contact}.`)
+
+  if (company.isFavorite) reasoningParts.push('Bereits als Favorit in SalesViewer markiert.')
+
   return {
     companyName: company.name,
     website: company.url ?? null,
     industry: company.sector?.name ?? null,
-    location: company.city ?? null,
-    reasoning: `Hat die Website ${visitTiming} besucht (${visits.length || 1} Seitenaufruf(e), ${totalEvents} Interaktionen).`,
+    location: formatLocation(company) ?? company.city ?? null,
+    reasoning: reasoningParts.join(' '),
     buyingSignals: ['Website-Besuch'],
     sourceUrls: visitedUrls,
   }
