@@ -5,6 +5,7 @@ import { Bot, Calendar, Clock, Play, Pencil, Square } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { StatusIndicator } from '@/components/ui/status-dot'
+import { CollapsibleText } from '@/components/ui/collapsible-text'
 import type { Database } from '@/lib/database.types'
 import { formatDateTime, nextRunLabel } from '@/lib/format'
 import type { DashboardStats } from '@/data/dashboardStats'
@@ -55,12 +56,13 @@ export function LeadScoutCard({
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
               <Bot className="h-8 w-8" />
             </div>
-            <div>
+            <div className="min-w-0">
               <StatusIndicator status={agent.status} />
               <h2 className="mt-1 text-2xl font-semibold text-slate-900">{agent.name}</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                {agent.description || 'Dein digitaler Mitarbeiter für die Suche nach passenden Zielkunden.'}
-              </p>
+              <CollapsibleText
+                className="mt-1 max-w-md text-sm leading-relaxed text-slate-500"
+                text={agent.description || 'Dein digitaler Mitarbeiter für die Suche nach passenden Zielkunden.'}
+              />
             </div>
           </div>
           <div className="mt-5 flex flex-wrap gap-3">
