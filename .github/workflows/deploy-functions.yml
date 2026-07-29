@@ -1,0 +1,43 @@
+name: Deploy Supabase Edge Functions
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'supabase/functions/**'
+  workflow_dispatch:
+
+concurrency:
+  group: supabase-functions-deploy
+  cancel-in-progress: false
+
+env:
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_PROJECT_REF: lfekegbrdzedfszqxgnz
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy trigger-lead-scout
+        run: supabase functions deploy trigger-lead-scout --project-ref "$SUPABASE_PROJECT_REF"
+
+      # --no-verify-jwt: diese beiden werden von Dritten (n8n, curl) mit einem
+      # eigenen Secret aufgerufen, nicht mit einem Supabase-Login-Token.
+      - name: Deploy lead-scout-callback
+        run: supabase functions deploy lead-scout-callback --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Deploy send-daily-report
+        run: supabase functions deploy send-daily-report --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Deploy sync-salesviewer-visitors
+        run: supabase functions deploy sync-salesviewer-visitors --project-ref "$SUPABASE_PROJECT_REF"

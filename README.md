@@ -70,10 +70,10 @@ npm run dev
 4. **Project Settings → API**: `Project URL` und `anon public` Key in die
    `.env` übernehmen (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
 
-### Edge Functions deployen
+### Edge Functions – Secrets setzen (einmalig, manuell)
 
 Voraussetzung: [Supabase CLI](https://supabase.com/docs/guides/cli) installiert
-und mit `supabase login` angemeldet.
+und mit `supabase login` angemeldet (oder `SUPABASE_ACCESS_TOKEN` gesetzt).
 
 ```bash
 supabase link --project-ref <dein-projekt-ref>
@@ -89,20 +89,31 @@ supabase secrets set \
   APP_URL="https://www.ringler-online.com/leadscout" \
   SALESVIEWER_API_KEY="dein-salesviewer-api-key" \
   SALESVIEWER_ACCOUNT_ID="deine-salesviewer-account-id"
-
-supabase functions deploy trigger-lead-scout
-# --no-verify-jwt: diese beiden Functions werden von Dritten (n8n) mit einem
-# eigenen Secret aufgerufen, nicht mit einem Supabase-Login-Token. Ohne dieses
-# Flag lehnt Supabase den Aufruf schon auf Plattform-Ebene mit
-# "401 Invalid JWT" ab, bevor die Funktion überhaupt läuft.
-supabase functions deploy lead-scout-callback --no-verify-jwt
-supabase functions deploy send-daily-report --no-verify-jwt
-supabase functions deploy sync-salesviewer-visitors
 ```
 
 `SUPABASE_URL` und `SUPABASE_SERVICE_ROLE_KEY` müssen für Edge Functions
 **nicht** manuell gesetzt werden – Supabase stellt sie automatisch als
 Umgebungsvariablen bereit.
+
+### Edge Functions – automatischer Deploy
+
+`.github/workflows/deploy-functions.yml` deployt alle vier Edge Functions
+automatisch bei jedem Push auf `main`, der Dateien unter
+`supabase/functions/` ändert (manuell auch über den Actions-Tab per "Run
+workflow" auslösbar). Die Secrets aus dem Schritt oben bleiben davon
+unberührt – die werden nur einmalig per CLI gesetzt, nicht bei jedem Deploy
+neu.
+
+Einmalig einzurichten (GitHub → Repo → **Settings → Secrets and variables →
+Actions**):
+
+| Secret | Beschreibung |
+| --- | --- |
+| `SUPABASE_ACCESS_TOKEN` | Personal Access Token aus [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) |
+
+Ohne dieses Secret läuft der Workflow-Schritt "Deploy trigger-lead-scout"
+fehl. Der Projekt-Ref (`lfekegbrdzedfszqxgnz`) steht direkt im Workflow, da
+er nicht geheim ist.
 
 ## Ohne n8n starten (Standard für den MVP)
 
